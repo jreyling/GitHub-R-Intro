@@ -1,0 +1,16 @@
+---
+title: "GitHubRIntro"
+author: "Joshua Reyling"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+source("setup.R")
+```
+
+```{r}
+data("penguins")
+
+penguins
+```
