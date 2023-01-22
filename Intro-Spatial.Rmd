@@ -24,21 +24,8 @@ tmap_mode("view")
 ```
 
 ```{r}
-tm_shape(counties) +
-  tm_polygons() +
-tm_shape(roads) +
-  tm_lines()
-```
-
-```{r}
-class(counties)
-```
-
-```{r}
 pdrHwy <- roads %>% 
   filter(FULLNAME == 'Poudre Canyon Hwy')
-
-qtm(pdrHwy)
 ```
 
 ```{r}
@@ -47,27 +34,56 @@ pdrPnts <- data.frame(name = c("Mishawaka", "Rustic", "Blue Lake Trailhead"),
                             lat = c(40.68752, 40.69687, 40.57960))
 
 pdrPnts_sf <- st_as_sf(poudre_points, coords = c("long", "lat"), crs = 4326)
-
-qtm(pdrHwy) +
-  qtm(pdrPnts_sf)
+pdrPntsProject <- st_transform(pdrPnts_sf, st_crs(counties))
 ```
 
-## R Markdown
+```{r}
+write_sf(pdrHwy, 'data/poudreHwy.shp')
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+write_sf(pdrPntsProject, 'data/poudrePoints.shp')
 ```
 
-## Including Plots
+## Exercises
 
-You can also embed plots, for example:
+#### 1. Filter Out the counties data set to only include Larimer, Denver, and Pueblo counties
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+countiesFiltered <- counties %>% 
+  filter(NAME %in% c('Larimer', 'Denver', 'Pueblo'))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+#### 2. Make a map of the `counties` data colored by county area. Make a second map of counties colored by their total area of water.
+
+```{r}
+# colored by land area
+tm_shape(countiesFiltered) +
+  tm_polygons(col = 'ALAND', )
+
+tm_shape(countiesFiltered) +
+  tm_polygons(col = 'AWATER')
+```
+
+#### 4. Make a barplot comparing the elevation of your 3 points in the Poudre Canyon (note: explore the `extract()` function in the `terra` package).
+
+```{r}
+elevation <- get_elev_raster(counties, z = 7)
+elevation <- rast(elevation)
+names(elevation) <- 'Elevation'
+
+elevationCrop <- crop(elevation, ext(pdrHwy))
+
+writeRaster(elevationCrop, 'data/poudreElevation.tif')
+
+pdrPointElevation <- extract(x= elevationCrop, 
+                             y= pdrPntsProject,
+                             xy= TRUE
+                             ) 
+
+pdrPointElevation %>% 
+  ggplot() +
+    geom_col(mapping = aes(x=ID, y=Elevation))
+```
+
+#### 4. Why are there 4 features in our Poudre Canyon Highway variable instead of 1?
+
+The highway line is broken into segments, each having its own entry in the data set.
