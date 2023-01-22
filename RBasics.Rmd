@@ -14,3 +14,7 @@ data("penguins")
 
 penguins
 ```
+
+```{r}
+do something else
+```

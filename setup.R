@@ -16,5 +16,6 @@ packages <- c('tidyverse',
               'rmarkdown',
               'tigris',
               'elevatr',
-              'rgdal')
+              'rgdal',
+              'tigris')
 packageLoad(packages)
