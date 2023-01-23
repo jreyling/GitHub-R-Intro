@@ -56,11 +56,16 @@ countiesFiltered <- counties %>%
 
 #### 2. Make a map of the `counties` data colored by county area. Make a second map of counties colored by their total area of water.
 
+##### *colored by land area*
+
 ```{r}
-# colored by land area
 tm_shape(countiesFiltered) +
   tm_polygons(col = 'ALAND', )
+```
 
+##### *colored by water area*
+
+```{r}
 tm_shape(countiesFiltered) +
   tm_polygons(col = 'AWATER')
 ```
@@ -80,13 +85,22 @@ pdrPointElevation <- extract(x= elevationCrop,
                              y= pdrPntsProject,
                              xy= TRUE
                              ) 
+```
 
+##### *create the plot*
+
+```{r}
 pdrPointElevation %>%
   left_join(pdrPntsProject, by= "ID") %>% 
   ggplot() +
-    geom_col(mapping = aes(x=name, y=Elevation))
+    geom_col(mapping = aes(x=name, y=Elevation, fill=name))
 ```
 
 #### 4. Why are there 4 features in our Poudre Canyon Highway variable instead of 1?
 
-The highway line is broken into segments, each having its own entry in the data set.
+The highway has three small offshoots with the same name, each having its own entry in the data set. You can see this by plotting this line with color based on the LINEARID field:
+
+```{r}
+tm_shape(pdrHwy) +
+  tm_lines(col='LINEARID', palette='Set2')
+```
