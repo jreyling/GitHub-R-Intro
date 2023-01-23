@@ -13,31 +13,43 @@ knitr::opts_chunk$set(echo = TRUE)
 source("setup.R")
 ```
 
+##### Create County object
+
 ```{r}
+# Define object for counties in Colorado
 counties <- counties(state = 'CO')
+```
 
+##### Create Poudre Highway line object
+
+```{r}
+# Create a line object of roads in Larimer county
 roads <- roads(state = 'CO', county = 'Larimer')
-```
 
-```{r}
-tmap_mode("view")
-```
-
-```{r}
+# subset roads to only Poudre Highway
 pdrHwy <- roads %>% 
   filter(FULLNAME == 'Poudre Canyon Hwy')
 ```
 
+##### Create Points along Poudre Highway
+
 ```{r}
+# create a dataframe
 pdrPnts <- data.frame(name = c("Mishawaka", "Rustic", "Blue Lake Trailhead"),
                             long = c(-105.35634, -105.58159, -105.85563),
                             lat = c(40.68752, 40.69687, 40.57960))
 
+# create a spatial object from the dataframe
 pdrPnts_sf <- st_as_sf(pdrPnts, coords = c("long", "lat"), crs = 4326)
+
+# Project created points
 pdrPntsProject <- st_transform(pdrPnts_sf, st_crs(counties))
 
+# add ID field to points (because we didn't do it before)
 pdrPntsProject <- mutate(pdrPntsProject, ID = c(1:nrow(pdrPnts)))
 ```
+
+##### Save highway line and points as shapefiles
 
 ```{r}
 write_sf(pdrHwy, 'data/poudreHwy.shp')
