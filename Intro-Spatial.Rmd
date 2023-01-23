@@ -33,8 +33,10 @@ pdrPnts <- data.frame(name = c("Mishawaka", "Rustic", "Blue Lake Trailhead"),
                             long = c(-105.35634, -105.58159, -105.85563),
                             lat = c(40.68752, 40.69687, 40.57960))
 
-pdrPnts_sf <- st_as_sf(poudre_points, coords = c("long", "lat"), crs = 4326)
+pdrPnts_sf <- st_as_sf(pdrPnts, coords = c("long", "lat"), crs = 4326)
 pdrPntsProject <- st_transform(pdrPnts_sf, st_crs(counties))
+
+pdrPntsProject <- mutate(pdrPntsProject, ID = c(1:3))
 ```
 
 ```{r}
@@ -72,16 +74,17 @@ names(elevation) <- 'Elevation'
 
 elevationCrop <- crop(elevation, ext(pdrHwy))
 
-writeRaster(elevationCrop, 'data/poudreElevation.tif')
+writeRaster(elevationCrop, 'data/poudreElevation.tif', overwrite=TRUE)
 
 pdrPointElevation <- extract(x= elevationCrop, 
                              y= pdrPntsProject,
                              xy= TRUE
                              ) 
 
-pdrPointElevation %>% 
+pdrPointElevation %>%
+  left_join(pdrPntsProject, by= "ID") %>% 
   ggplot() +
-    geom_col(mapping = aes(x=ID, y=Elevation))
+    geom_col(mapping = aes(x=name, y=Elevation))
 ```
 
 #### 4. Why are there 4 features in our Poudre Canyon Highway variable instead of 1?
